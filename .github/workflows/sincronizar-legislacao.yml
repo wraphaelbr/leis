@@ -1,0 +1,31 @@
+name: Sincronizar legislacao brasileira
+run-name: Sincronizar ctresb/leis para wraphaelbr/leis
+
+on:
+  schedule:
+    # Todos os dias as 07:37 de Brasilia (UTC-3).
+    - cron: '37 10 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sincronizacao-legislacao
+  cancel-in-progress: false
+
+jobs:
+  sincronizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Sincronizar fork com repositório original
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          # GitHub realiza a sincronizacao remotamente: nao e necessario clonar o acervo.
+          # Sem --force: conflitos nao apagam personalizacoes do fork.
+          gh api --method POST "repos/${GH_REPO}/merge-upstream" -f branch=main
+          echo "Sincronizacao solicitada ao GitHub com sucesso."
